@@ -1,0 +1,481 @@
+/* ================================================================
+   Variablen
+   ================================================================ */
+:root {
+  --red:           #c0392b;
+  --red-light:     #fadbd8;
+  --blue:          #2471a3;
+  --blue-light:    #d6eaf8;
+  --neutral:       #a18a6a;
+  --neutral-light: #f5f0e8;
+  --assassin:      #1a1a1a;
+
+  --hidden-bg:     #e8e0d5;
+  --hidden-border: #c8b89a;
+
+  --bg:       #f0ebe3;
+  --surface:  #ffffff;
+  --text:     #1a1a1a;
+  --muted:    #777;
+  --border:   #ddd;
+
+  --sidebar-w: 300px;
+  --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ================================================================
+   Reset
+   ================================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* ================================================================
+   Layout
+   ================================================================ */
+.game-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.board-area {
+  flex: 1;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+}
+
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  padding: 1.25rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  flex-shrink: 0;
+}
+
+/* ================================================================
+   Spielbrett & Karten
+   ================================================================ */
+.board {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 860px;
+}
+
+.card {
+  min-height: 84px;
+  padding: 0.75rem 0.5rem;
+  border-radius: 8px;
+  border: 3px solid transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: default;
+  user-select: none;
+  transition: transform 0.1s, box-shadow 0.1s;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Versteckte Karte (Ermittler-Ansicht) */
+.card-hidden {
+  background: var(--hidden-bg);
+  border-color: var(--hidden-border);
+  color: var(--text);
+}
+
+/* Geheimdienstchef-Hinweise (subtile Farbtönung für unveröffentlichte Karten) */
+.card-spymaster-red     { background: var(--red-light);     border-color: var(--red);     color: var(--red); }
+.card-spymaster-blue    { background: var(--blue-light);    border-color: var(--blue);    color: var(--blue); }
+.card-spymaster-neutral { background: var(--neutral-light); border-color: var(--neutral); color: #6a5a40; }
+.card-spymaster-assassin { background: #2a2a2a; border-color: #000; color: #ccc; }
+
+/* Aufgedeckte Karten */
+.card-revealed.card-red      { background: var(--red);     border-color: var(--red);     color: #fff; }
+.card-revealed.card-blue     { background: var(--blue);    border-color: var(--blue);    color: #fff; }
+.card-revealed.card-neutral  { background: var(--neutral); border-color: var(--neutral); color: #fff; }
+.card-revealed.card-assassin { background: var(--assassin); border-color: #000;          color: #fff; }
+
+/* Klickbare Karten */
+.card-clickable { cursor: pointer; }
+.card-clickable:hover  { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,.18); }
+.card-clickable:active { transform: translateY(0);    box-shadow: none; }
+.card-clickable:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+/* ================================================================
+   Sidebar-Abschnitte
+   ================================================================ */
+.sidebar-section { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.room-code-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.room-code {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: var(--bg);
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-family: monospace;
+  font-size: 1.8rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  color: var(--text);
+  transition: border-color 0.15s;
+  width: 100%;
+  text-align: left;
+}
+.room-code:hover { border-color: #aaa; }
+
+.copy-hint {
+  font-family: var(--font);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Punktestand */
+.score-section  { flex-direction: row; gap: 0.6rem; }
+.score-badge    { flex: 1; text-align: center; padding: 0.4rem 0.5rem; border-radius: 6px; font-weight: 700; font-size: 0.95rem; }
+.score-red  { background: var(--red-light);  color: var(--red); }
+.score-blue { background: var(--blue-light); color: var(--blue); }
+
+/* Zugindikator */
+.turn-indicator {
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 700;
+  text-align: center;
+  font-size: 0.9rem;
+}
+.turn-red  { background: var(--red-light);  color: var(--red); }
+.turn-blue { background: var(--blue-light); color: var(--blue); }
+
+.status-waiting {
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: #f5f5f5;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* Gewinnerbanner */
+.winner-banner {
+  border-radius: 8px;
+  padding: 0.85rem 0.75rem;
+  text-align: center;
+}
+.winner-red  { background: var(--red);  color: #fff; }
+.winner-blue { background: var(--blue); color: #fff; }
+.winner-title  { font-size: 1.05rem; font-weight: 800; }
+.winner-reason { font-size: 0.8rem; margin-top: 0.3rem; opacity: 0.9; }
+
+/* Aktions-Buttons in der Sidebar */
+.actions { gap: 0.5rem; }
+
+/* ================================================================
+   Buttons
+   ================================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.25rem;
+  border-radius: 6px;
+  border: none;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  line-height: 1;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:not(:disabled):hover  { opacity: 0.85; }
+.btn:not(:disabled):active { transform: scale(0.98); }
+
+.btn-primary   { background: var(--blue); color: #fff; }
+.btn-secondary { background: #4a5568;    color: #fff; }
+.btn-muted     { background: #999;       color: #fff; font-size: 0.82rem; }
+.btn-full      { width: 100%; }
+
+.btn-back {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--blue);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0;
+  flex-shrink: 0;
+}
+.btn-back:hover { opacity: 0.75; }
+
+/* ================================================================
+   Spielerliste
+   ================================================================ */
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.player-list h3 {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.team-section { display: flex; flex-direction: column; gap: 0.3rem; }
+
+.team-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.1rem;
+}
+.team-section-red  .team-label { color: var(--red); }
+.team-section-blue .team-label { color: var(--blue); }
+
+.player-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.45rem;
+  border-radius: 5px;
+  background: var(--bg);
+  font-size: 0.82rem;
+}
+.player-me { outline: 2px solid var(--blue-light); }
+
+.player-name {
+  flex: 1;
+  font-weight: 600;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player-controls { display: flex; gap: 0.25rem; }
+
+.select-sm {
+  font-size: 0.73rem;
+  padding: 0.18rem 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  font-family: var(--font);
+}
+
+.text-muted { color: var(--muted); font-size: 0.85rem; }
+
+/* ================================================================
+   Formulare & Seiten
+   ================================================================ */
+.page-center {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--bg);
+}
+
+/* Startseite */
+.home-card {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 30px rgba(0,0,0,.1);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.home-title {
+  font-size: 2.6rem;
+  font-weight: 900;
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+.home-subtitle {
+  font-size: 0.9rem;
+  color: var(--muted);
+  text-align: center;
+  margin-top: -0.5rem;
+}
+
+.divider {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.85rem;
+  position: relative;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  height: 1px;
+  width: calc(50% - 2rem);
+  background: var(--border);
+}
+.divider::before { left: 0; }
+.divider::after  { right: 0; }
+
+/* Spiel erstellen */
+.page-padded {
+  padding: 2rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.create-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+.create-header h1 { font-size: 1.5rem; font-weight: 800; }
+
+.create-hint {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin-bottom: 1.25rem;
+}
+
+.words-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.45rem;
+  margin-bottom: 1.25rem;
+}
+
+.word-input {
+  font-size: 0.83rem !important;
+  padding: 0.45rem 0.5rem !important;
+  text-align: center;
+}
+
+.btn-create {
+  font-size: 1rem;
+  padding: 0.75rem 2rem;
+}
+
+/* Formularelement */
+.form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  font-size: 1rem;
+  font-family: var(--font);
+  background: #fff;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+.input:focus { outline: none; border-color: var(--blue); }
+.input-mono  { font-family: monospace; letter-spacing: 0.12em; font-size: 1.1rem; }
+
+/* Fehlermeldungen */
+.error-message {
+  background: var(--red-light);
+  color: var(--red);
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+}
+
+.error-box {
+  background: var(--surface);
+  border-radius: 10px;
+  padding: 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 380px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.08);
+}
+
+/* ================================================================
+   Responsive
+   ================================================================ */
+@media (max-width: 768px) {
+  .game-layout {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+  }
+  .sidebar {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+  .board-area { padding: 0.75rem; }
+  .board { gap: 0.35rem; }
+  .card {
+    min-height: 58px;
+    font-size: 0.7rem;
+    padding: 0.4rem 0.25rem;
+  }
+  .page-padded { padding: 1rem; }
+  .words-grid { grid-template-columns: repeat(5, 1fr); gap: 0.3rem; }
+}
+
+@media (max-width: 480px) {
+  .home-card { padding: 1.75rem 1.25rem; }
+  .board { gap: 0.25rem; }
+  .card { min-height: 50px; font-size: 0.62rem; }
+}
