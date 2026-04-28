@@ -4,6 +4,7 @@ export type TeamOrSpectator = Team | 'spectator';
 export type CardColor = 'red' | 'blue' | 'neutral' | 'assassin';
 export type Role = 'operative' | 'spymaster';
 export type EndReason = 'all_red_found' | 'all_blue_found' | 'assassin';
+export type TurnPhase = 'clue' | 'guess';
 
 export interface Game {
   id: string;
@@ -13,6 +14,10 @@ export interface Game {
   current_team: Team;
   winner: Team | null;
   end_reason: EndReason | null;
+  turn_phase: TurnPhase;
+  current_clue_word: string | null;
+  current_clue_number: number | null;
+  guesses_remaining: number | null;
   created_at: string;
 }
 

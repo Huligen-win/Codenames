@@ -26,6 +26,9 @@ export function GameRoom() {
   const isHost = game?.host_id === localPlayer.id;
   const isSpymaster = me?.role === 'spymaster';
   const myTeam = me?.team ?? 'spectator';
+  const canEndTurn =
+    game?.status === 'playing' &&
+    (isHost || (me?.team === game.current_team && game.turn_phase === 'guess'));
 
   const redScore = cards.filter((c) => c.color === 'red' && !c.revealed).length;
   const blueScore = cards.filter((c) => c.color === 'blue' && !c.revealed).length;
@@ -115,12 +118,28 @@ export function GameRoom() {
     if (error) alert('Fehler beim Starten des Spiels.');
   };
 
+  const handleGiveClue = async (word: string, number: number) => {
+    if (!game || !me) return;
+    await supabase.rpc('give_clue', {
+      p_local_player_id: localPlayer.id,
+      p_game_id: game.id,
+      p_word: word,
+      p_number: number,
+    });
+  };
+
   const handleEndTurn = async () => {
-    if (!game || !isHost) return;
+    if (!game || !canEndTurn) return;
     const nextTeam = game.current_team === 'red' ? 'blue' : 'red';
     const { error } = await supabase
       .from('games')
-      .update({ current_team: nextTeam })
+      .update({
+        current_team: nextTeam,
+        turn_phase: 'clue',
+        current_clue_word: null,
+        current_clue_number: null,
+        guesses_remaining: null,
+      })
       .eq('id', game.id);
     if (error) alert('Fehler beim Beenden des Zugs.');
   };
@@ -161,7 +180,16 @@ export function GameRoom() {
 
     const { error: resetError } = await supabase
       .from('games')
-      .update({ status: 'playing', current_team: 'red', winner: null, end_reason: null })
+      .update({
+        status: 'playing',
+        current_team: 'red',
+        winner: null,
+        end_reason: null,
+        turn_phase: 'clue',
+        current_clue_word: null,
+        current_clue_number: null,
+        guesses_remaining: null,
+      })
       .eq('id', game.id);
 
     if (resetError) {
@@ -244,9 +272,13 @@ export function GameRoom() {
         redScore={redScore}
         blueScore={blueScore}
         isHost={isHost}
+        isSpymaster={isSpymaster ?? false}
+        myTeam={myTeam}
+        canEndTurn={canEndTurn ?? false}
         onStartGame={handleStartGame}
         onEndTurn={handleEndTurn}
         onRestartGame={handleRestartGame}
+        onGiveClue={handleGiveClue}
       >
         <PlayerList
           players={players}

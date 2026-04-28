@@ -32,16 +32,21 @@ Im Supabase Dashboard → **SQL Editor** → folgenden Code einfügen und ausfü
 create extension if not exists "pgcrypto";
 
 create table games (
-  id           uuid primary key default gen_random_uuid(),
-  room_code    text not null unique,
-  host_id      uuid not null,
-  status       text not null default 'waiting'
-                 check (status in ('waiting', 'playing', 'finished')),
-  current_team text not null default 'red'
-                 check (current_team in ('red', 'blue')),
-  winner       text check (winner in ('red', 'blue')),
-  end_reason   text check (end_reason in ('all_red_found', 'all_blue_found', 'assassin')),
-  created_at   timestamptz not null default now()
+  id                  uuid primary key default gen_random_uuid(),
+  room_code           text not null unique,
+  host_id             uuid not null,
+  status              text not null default 'waiting'
+                        check (status in ('waiting', 'playing', 'finished')),
+  current_team        text not null default 'red'
+                        check (current_team in ('red', 'blue')),
+  winner              text check (winner in ('red', 'blue')),
+  end_reason          text check (end_reason in ('all_red_found', 'all_blue_found', 'assassin')),
+  turn_phase          text not null default 'clue'
+                        check (turn_phase in ('clue', 'guess')),
+  current_clue_word   text,
+  current_clue_number int,
+  guesses_remaining   int,
+  created_at          timestamptz not null default now()
 );
 
 create table cards (
@@ -80,12 +85,33 @@ create policy "public read/write" on games   for all using (true) with check (tr
 create policy "public read/write" on cards    for all using (true) with check (true);
 create policy "public read/write" on players  for all using (true) with check (true);
 
+create or replace function give_clue(
+  p_local_player_id uuid, p_game_id uuid, p_word text, p_number int
+) returns void language plpgsql as $$
+declare
+  v_game   games%rowtype;
+  v_player players%rowtype;
+begin
+  select * into v_game from games where id = p_game_id for update;
+  if not found or v_game.status != 'playing' or v_game.turn_phase != 'clue' then return; end if;
+  select * into v_player from players
+    where game_id = p_game_id and local_player_id = p_local_player_id;
+  if not found or v_player.role != 'spymaster' or v_player.team != v_game.current_team then return; end if;
+  update games set
+    current_clue_word   = p_word,
+    current_clue_number = p_number,
+    guesses_remaining   = case when p_number = 0 then 25 else p_number + 1 end,
+    turn_phase          = 'guess'
+  where id = p_game_id;
+end;
+$$;
+
 create or replace function reveal_card(p_local_player_id uuid, p_game_id uuid, p_card_id uuid)
 returns void language plpgsql as $$
 declare
-  v_card    cards%rowtype;
-  v_game    games%rowtype;
-  v_player  players%rowtype;
+  v_card      cards%rowtype;
+  v_game      games%rowtype;
+  v_player    players%rowtype;
   v_red_left  int;
   v_blue_left int;
 begin
@@ -101,6 +127,7 @@ begin
 
   if not found                              then return; end if;
   if v_game.status   != 'playing'           then return; end if;
+  if v_game.turn_phase != 'guess'           then return; end if;
   if v_player.team   != v_game.current_team then return; end if;
   if v_player.role    = 'spymaster'         then return; end if;
 
@@ -108,9 +135,13 @@ begin
 
   if v_card.color = 'assassin' then
     update games set
-      status     = 'finished',
-      winner     = case when v_player.team = 'red' then 'blue' else 'red' end,
-      end_reason = 'assassin'
+      status              = 'finished',
+      winner              = case when v_player.team = 'red' then 'blue' else 'red' end,
+      end_reason          = 'assassin',
+      turn_phase          = 'clue',
+      current_clue_word   = null,
+      current_clue_number = null,
+      guesses_remaining   = null
     where id = v_game.id;
     return;
   end if;
@@ -121,21 +152,58 @@ begin
     from cards where game_id = v_game.id and color = 'blue' and revealed = false;
 
   if v_card.color = 'red'  and v_red_left  = 0 then
-    update games set status = 'finished', winner = 'red',  end_reason = 'all_red_found'
+    update games set status = 'finished', winner = 'red',  end_reason = 'all_red_found',
+      turn_phase = 'clue', current_clue_word = null, current_clue_number = null, guesses_remaining = null
     where id = v_game.id; return;
   end if;
   if v_card.color = 'blue' and v_blue_left = 0 then
-    update games set status = 'finished', winner = 'blue', end_reason = 'all_blue_found'
+    update games set status = 'finished', winner = 'blue', end_reason = 'all_blue_found',
+      turn_phase = 'clue', current_clue_word = null, current_clue_number = null, guesses_remaining = null
     where id = v_game.id; return;
   end if;
 
+  -- Falsche Farbe → sofortiger Zugwechsel
   if v_card.color != v_game.current_team then
-    update games set current_team =
-      case when v_game.current_team = 'red' then 'blue' else 'red' end
+    update games set
+      current_team        = case when v_game.current_team = 'red' then 'blue' else 'red' end,
+      turn_phase          = 'clue',
+      current_clue_word   = null,
+      current_clue_number = null,
+      guesses_remaining   = null
     where id = v_game.id;
+    return;
+  end if;
+
+  -- Richtige Farbe → guesses_remaining dekrementieren
+  if v_game.guesses_remaining - 1 <= 0 then
+    update games set
+      current_team        = case when v_game.current_team = 'red' then 'blue' else 'red' end,
+      turn_phase          = 'clue',
+      current_clue_word   = null,
+      current_clue_number = null,
+      guesses_remaining   = null
+    where id = v_game.id;
+  else
+    update games set guesses_remaining = v_game.guesses_remaining - 1 where id = v_game.id;
   end if;
 end;
 $$;
+```
+
+**Bestehende Datenbank aktualisieren (falls das Schema bereits angelegt wurde):**  
+Statt das Schema neu zu erstellen, diese Migrationsbefehle ausführen:
+
+```sql
+-- Neue Spalten zur games-Tabelle hinzufügen
+alter table games
+  add column if not exists turn_phase          text not null default 'clue'
+    check (turn_phase in ('clue', 'guess')),
+  add column if not exists current_clue_word   text,
+  add column if not exists current_clue_number int,
+  add column if not exists guesses_remaining   int;
+
+-- give_clue-Funktion anlegen (s.o.)
+-- reveal_card-Funktion ersetzen (s.o.)
 ```
 
 **Schritt 3 – Realtime aktivieren**  

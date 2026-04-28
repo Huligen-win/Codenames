@@ -202,6 +202,128 @@ body {
 .winner-title  { font-size: 1.05rem; font-weight: 800; }
 .winner-reason { font-size: 0.8rem; margin-top: 0.3rem; opacity: 0.9; }
 
+/* ================================================================
+   Hinweis-UI (Clue-Formular, Anzeige, Warten)
+   ================================================================ */
+
+/* Formular für den Spymaster */
+.clue-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+}
+.clue-form-red  { border-color: var(--red);  background: var(--red-light); }
+.clue-form-blue { border-color: var(--blue); background: var(--blue-light); }
+
+.clue-form-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.clue-word-input {
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font);
+  font-size: 1rem;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text);
+  outline: none;
+}
+.clue-word-input:focus { border-color: #888; }
+
+.clue-number-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.clue-number-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.clue-number-select {
+  flex: 1;
+  padding: 0.4rem 0.5rem;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 700;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+/* Warten auf Hinweis */
+.clue-waiting {
+  padding: 0.55rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--muted);
+  background: #f5f5f5;
+}
+.clue-waiting-red  { background: var(--red-light);  color: var(--red); }
+.clue-waiting-blue { background: var(--blue-light); color: var(--blue); }
+
+/* Hinweis-Anzeige für alle */
+.clue-display {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 2px solid transparent;
+}
+.clue-display-red  { background: var(--red-light);  border-color: var(--red); }
+.clue-display-blue { background: var(--blue-light); border-color: var(--blue); }
+
+.clue-display-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+
+.clue-display-content {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.clue-display-word {
+  font-size: 1.3rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text);
+}
+
+.clue-display-number {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.clue-display-remaining {
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
 /* Aktions-Buttons in der Sidebar */
 .actions { gap: 0.5rem; }
 

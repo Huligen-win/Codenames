@@ -22,6 +22,7 @@ export function Board({ cards, isSpymaster, game, myTeam, onReveal }: BoardProps
           gameStatus={game.status}
           currentTeam={game.current_team}
           myTeam={myTeam}
+          turnPhase={game.turn_phase}
           onReveal={onReveal}
         />
       ))}

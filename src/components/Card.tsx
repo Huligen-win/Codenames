@@ -1,4 +1,4 @@
-import type { Card as CardType, GameStatus, TeamOrSpectator, Team } from '../lib/types';
+import type { Card as CardType, GameStatus, TeamOrSpectator, Team, TurnPhase } from '../lib/types';
 
 interface CardProps {
   card: CardType;
@@ -6,14 +6,16 @@ interface CardProps {
   gameStatus: GameStatus;
   currentTeam: Team;
   myTeam: TeamOrSpectator;
+  turnPhase: TurnPhase;
   onReveal: (card: CardType) => void;
 }
 
-export function Card({ card, isSpymaster, gameStatus, currentTeam, myTeam, onReveal }: CardProps) {
+export function Card({ card, isSpymaster, gameStatus, currentTeam, myTeam, turnPhase, onReveal }: CardProps) {
   const canReveal =
     !card.revealed &&
     !isSpymaster &&
     gameStatus === 'playing' &&
+    turnPhase === 'guess' &&
     myTeam !== 'spectator' &&
     myTeam === currentTeam;
 
