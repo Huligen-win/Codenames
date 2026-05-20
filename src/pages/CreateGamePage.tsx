@@ -1,22 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { generateRoomCode, distributeColors } from '../lib/utils';
+import { generateRoomCode, distributeColors, shuffleArray } from '../lib/utils';
 import { useLocalPlayerContext } from '../context/LocalPlayerContext';
 
 export function CreateGamePage() {
   const navigate = useNavigate();
   const { localPlayer } = useLocalPlayerContext();
 
-  const [words, setWords] = useState<string[]>(Array(25).fill(''));
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const updateWord = (index: number, value: string) => {
-    const updated = [...words];
-    updated[index] = value;
-    setWords(updated);
-  };
 
   const handleCreate = async () => {
     setError(null);
@@ -26,21 +19,24 @@ export function CreateGamePage() {
       return;
     }
 
-    const trimmed = words.map((w) => w.trim());
-    const emptyCount = trimmed.filter((w) => w === '').length;
-    if (emptyCount > 0) {
-      setError(`Bitte fülle alle 25 Felder aus. Noch ${emptyCount} leer.`);
-      return;
-    }
-
-    const lower = trimmed.map((w) => w.toLowerCase());
-    const unique = new Set(lower);
-    if (unique.size < 25) {
-      setError('Alle 25 Begriffe müssen einzigartig sein (Groß-/Kleinschreibung ignoriert).');
-      return;
-    }
-
     setCreating(true);
+
+    // 25 zufällige Wörter aus word_pool ziehen
+    const { data: wordRows, error: wordError } = await supabase
+      .from('word_pool')
+      .select('word');
+
+    if (wordError || !wordRows || wordRows.length < 25) {
+      setError(
+        wordRows && wordRows.length < 25
+          ? `Nicht genug Wörter in der Datenbank (${wordRows?.length ?? 0} vorhanden, 25 benötigt).`
+          : 'Fehler beim Laden der Wörter. Bitte erneut versuchen.'
+      );
+      setCreating(false);
+      return;
+    }
+
+    const selected = shuffleArray(wordRows.map((r) => r.word)).slice(0, 25);
 
     // Raumcode mit Kollisionsbehandlung (max. 3 Versuche)
     let roomCode = generateRoomCode();
@@ -95,7 +91,7 @@ export function CreateGamePage() {
     // Karten erzeugen
     const colors = distributeColors();
     const { error: cardsError } = await supabase.from('cards').insert(
-      trimmed.map((word, i) => ({
+      selected.map((word, i) => ({
         game_id: gameId,
         word,
         color: colors[i],
@@ -122,28 +118,8 @@ export function CreateGamePage() {
       </div>
 
       <p className="create-hint">
-        Gib genau 25 Begriffe ein — einen pro Feld. Alle Felder müssen ausgefüllt und einzigartig sein.
+        25 zufällige Begriffe aus dem Kurs-Wortschatz werden automatisch ausgewählt.
       </p>
-
-      <div className="words-grid">
-        {words.map((word, i) => (
-          <input
-            key={i}
-            className="input word-input"
-            type="text"
-            value={word}
-            onChange={(e) => updateWord(i, e.target.value)}
-            placeholder={`${i + 1}`}
-            maxLength={30}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                const inputs = document.querySelectorAll<HTMLInputElement>('.word-input');
-                inputs[i + 1]?.focus();
-              }
-            }}
-          />
-        ))}
-      </div>
 
       {error && <div className="error-message">{error}</div>}
 
