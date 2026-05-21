@@ -101,7 +101,6 @@ export function Sidebar({
             value={clueWord}
             onChange={(e) => setClueWord(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleGiveClue()}
-            maxLength={30}
             autoFocus
           />
           <div className="clue-number-row">

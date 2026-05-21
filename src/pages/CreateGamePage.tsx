@@ -26,17 +26,17 @@ export function CreateGamePage() {
       .from('word_pool')
       .select('word');
 
-    if (wordError || !wordRows || wordRows.length < 25) {
+    if (wordError || !wordRows || wordRows.length < 16) {
       setError(
-        wordRows && wordRows.length < 25
-          ? `Nicht genug Wörter in der Datenbank (${wordRows?.length ?? 0} vorhanden, 25 benötigt).`
+        wordRows && wordRows.length < 16
+          ? `Nicht genug Wörter in der Datenbank (${wordRows?.length ?? 0} vorhanden, 16 benötigt).`
           : 'Fehler beim Laden der Wörter. Bitte erneut versuchen.'
       );
       setCreating(false);
       return;
     }
 
-    const selected = shuffleArray(wordRows.map((r) => r.word)).slice(0, 25);
+    const selected = shuffleArray(wordRows.map((r) => r.word)).slice(0, 16);
 
     // Raumcode mit Kollisionsbehandlung (max. 3 Versuche)
     let roomCode = generateRoomCode();

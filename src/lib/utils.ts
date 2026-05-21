@@ -20,9 +20,9 @@ export function shuffleArray<T>(arr: T[]): T[] {
 
 export function distributeColors(): CardColor[] {
   const colors: CardColor[] = [
-    ...Array<CardColor>(9).fill('red'),
-    ...Array<CardColor>(8).fill('blue'),
-    ...Array<CardColor>(7).fill('neutral'),
+    ...Array<CardColor>(5).fill('red'),
+    ...Array<CardColor>(4).fill('blue'),
+    ...Array<CardColor>(6).fill('neutral'),
     'assassin',
   ];
   return shuffleArray(colors);
