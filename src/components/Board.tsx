@@ -11,9 +11,10 @@ interface BoardProps {
 
 export function Board({ cards, isSpymaster, game, myTeam, onReveal }: BoardProps) {
   const sorted = [...cards].sort((a, b) => a.position - b.position);
+  const gridClass = cards.length <= 16 ? 'board board-4x4' : 'board board-5x5';
 
   return (
-    <div className="board">
+    <div className={gridClass}>
       {sorted.map((card) => (
         <Card
           key={card.id}

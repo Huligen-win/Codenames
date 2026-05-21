@@ -163,7 +163,8 @@ export function GameRoom() {
       return;
     }
 
-    const colors = distributeColors();
+    const boardSize = currentWords.length === 16 ? 16 : 25;
+    const colors = distributeColors(boardSize);
     const { error: insertError } = await supabase.from('cards').insert(
       currentWords.map((word, i) => ({
         game_id: game.id,

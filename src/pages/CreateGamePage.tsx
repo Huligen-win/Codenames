@@ -10,6 +10,7 @@ export function CreateGamePage() {
 
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [boardSize, setBoardSize] = useState<16 | 25>(25);
 
   const handleCreate = async () => {
     setError(null);
@@ -21,22 +22,21 @@ export function CreateGamePage() {
 
     setCreating(true);
 
-    // 25 zufällige Wörter aus word_pool ziehen
     const { data: wordRows, error: wordError } = await supabase
       .from('word_pool')
       .select('word');
 
-    if (wordError || !wordRows || wordRows.length < 16) {
+    if (wordError || !wordRows || wordRows.length < boardSize) {
       setError(
-        wordRows && wordRows.length < 16
-          ? `Nicht genug Wörter in der Datenbank (${wordRows?.length ?? 0} vorhanden, 16 benötigt).`
+        wordRows && wordRows.length < boardSize
+          ? `Nicht genug Wörter in der Datenbank (${wordRows?.length ?? 0} vorhanden, ${boardSize} benötigt).`
           : 'Fehler beim Laden der Wörter. Bitte erneut versuchen.'
       );
       setCreating(false);
       return;
     }
 
-    const selected = shuffleArray(wordRows.map((r) => r.word)).slice(0, 16);
+    const selected = shuffleArray(wordRows.map((r) => r.word)).slice(0, boardSize);
 
     // Raumcode mit Kollisionsbehandlung (max. 3 Versuche)
     let roomCode = generateRoomCode();
@@ -89,7 +89,7 @@ export function CreateGamePage() {
     }
 
     // Karten erzeugen
-    const colors = distributeColors();
+    const colors = distributeColors(boardSize);
     const { error: cardsError } = await supabase.from('cards').insert(
       selected.map((word, i) => ({
         game_id: gameId,
@@ -118,8 +118,30 @@ export function CreateGamePage() {
       </div>
 
       <p className="create-hint">
-        25 zufällige Begriffe aus dem Kurs-Wortschatz werden automatisch ausgewählt.
+        Zufällige Begriffe aus dem Kurs-Wortschatz werden automatisch ausgewählt.
       </p>
+
+      <div className="board-size-selector">
+        <div className="board-size-label">Spielfeldgröße</div>
+        <div className="board-size-options">
+          <button
+            className={`board-size-btn${boardSize === 25 ? ' board-size-btn-active' : ''}`}
+            onClick={() => setBoardSize(25)}
+            type="button"
+          >
+            <span className="board-size-grid">5×5</span>
+            <span className="board-size-desc">25 Karten</span>
+          </button>
+          <button
+            className={`board-size-btn${boardSize === 16 ? ' board-size-btn-active' : ''}`}
+            onClick={() => setBoardSize(16)}
+            type="button"
+          >
+            <span className="board-size-grid">4×4</span>
+            <span className="board-size-desc">16 Karten</span>
+          </button>
+        </div>
+      </div>
 
       {error && <div className="error-message">{error}</div>}
 

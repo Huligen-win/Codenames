@@ -71,10 +71,18 @@ body {
    ================================================================ */
 .board {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 0.6rem;
   width: 100%;
+}
+
+.board-4x4 {
+  grid-template-columns: repeat(4, 1fr);
   max-width: 700px;
+}
+
+.board-5x5 {
+  grid-template-columns: repeat(5, 1fr);
+  max-width: 860px;
 }
 
 .card {
@@ -524,6 +532,60 @@ body {
 .btn-create {
   font-size: 1rem;
   padding: 0.75rem 2rem;
+}
+
+.board-size-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.board-size-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.board-size-options {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.board-size-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  font-family: var(--font);
+}
+
+.board-size-btn:hover {
+  border-color: #aaa;
+}
+
+.board-size-btn-active {
+  border-color: var(--blue);
+  background: var(--blue-light);
+}
+
+.board-size-grid {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.board-size-desc {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
 }
 
 /* Formularelement */

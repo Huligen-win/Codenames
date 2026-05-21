@@ -18,12 +18,10 @@ export function shuffleArray<T>(arr: T[]): T[] {
   return arr;
 }
 
-export function distributeColors(): CardColor[] {
-  const colors: CardColor[] = [
-    ...Array<CardColor>(5).fill('red'),
-    ...Array<CardColor>(4).fill('blue'),
-    ...Array<CardColor>(6).fill('neutral'),
-    'assassin',
-  ];
+export function distributeColors(size: 16 | 25 = 25): CardColor[] {
+  const colors: CardColor[] =
+    size === 16
+      ? [...Array<CardColor>(5).fill('red'), ...Array<CardColor>(4).fill('blue'), ...Array<CardColor>(6).fill('neutral'), 'assassin']
+      : [...Array<CardColor>(9).fill('red'), ...Array<CardColor>(8).fill('blue'), ...Array<CardColor>(7).fill('neutral'), 'assassin'];
   return shuffleArray(colors);
 }
